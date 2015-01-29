@@ -14,6 +14,13 @@ func (s *Scs) cryptData(data, iv []byte) (out []byte) {
 	return out
 }
 
+func (s *Scs) uncryptData(data, iv []byte) (out []byte) {
+	out = make([]byte, len(data))
+	mode := cipher.NewCBCDecrypter(s.aes, iv)
+	mode.CryptBlocks(out, data)
+	return out
+}
+
 
 func (s *Scs) authToken(eData, eAtime, eTid, eIv string) []byte {
 	unmac := box(eData, eAtime, eTid, eIv)
@@ -25,3 +32,9 @@ func (s *Scs) authToken(eData, eAtime, eTid, eIv string) []byte {
 func box(parts ...string) string {
 	return strings.Join(parts, "|")
 }
+
+func unbox(input string) []string {
+	return strings.Split(input, "|")
+}
+
+

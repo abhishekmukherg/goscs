@@ -1,6 +1,7 @@
 package scs
 
 import (
+	"bytes"
 	"testing"
 )
 
@@ -20,9 +21,18 @@ func TestGenerate(t *testing.T) {
 
 	scs := New([]byte("deadbedwasfed123"))
 	for _, exp := range data {
-		padded, _ := scs.Generate(exp.input)
-		if padded != exp.expected {
-			t.Errorf("addPadding(%q) = %q, expected %q", exp.input, padded, exp.expected)
+		cookie, err := scs.Generate(exp.input)
+		if err != nil {
+			t.Errorf("Got a non-nil error encoding %q", err)
+		}
+
+		result, err := scs.Parse(cookie)
+		if err != nil {
+			t.Errorf("Got a non-nil error decoding %q", err)
+		}
+
+		if !bytes.Equal(exp.input, result) {
+			t.Errorf("Parse(Generate(%q)) = %q", exp.input, result)
 		}
 	}
 }
