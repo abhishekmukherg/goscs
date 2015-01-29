@@ -1,4 +1,4 @@
-package scs
+package goscs
 
 import (
 	"crypto/aes"
