@@ -1,23 +1,23 @@
 package goscs
 
 import (
+	"bytes"
 	"crypto/aes"
 	"crypto/cipher"
-	"crypto/rand"
 	"crypto/hmac"
+	"crypto/rand"
 	"encoding/base64"
-	"time"
-	"bytes"
-	"strconv"
-	"log"
 	"errors"
+	"log"
+	"strconv"
+	"time"
 )
 
 var BadInputError = errors.New("Bad Input")
 
 type Scs struct {
-	key []byte
-	aes cipher.Block
+	key           []byte
+	aes           cipher.Block
 	sessionMaxAge time.Duration
 }
 
@@ -111,5 +111,5 @@ func (s *Scs) Parse(input string) ([]byte, error) {
 	}
 
 	out := s.uncryptData(data, iv)
-	return out, nil
+	return removePadding(out), nil
 }

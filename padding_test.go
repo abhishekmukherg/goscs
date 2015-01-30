@@ -1,8 +1,8 @@
 package goscs
 
 import (
-	"testing"
 	"bytes"
+	"testing"
 )
 
 type expectations struct {
@@ -10,13 +10,13 @@ type expectations struct {
 }
 
 func TestAddPadding(t *testing.T) {
-	data := []expectations {
+	data := []expectations{
 		{[]byte("abcdefghijklmno"), []byte("abcdefghijklmno\x01")},
 		{[]byte("abcdefghijklmn"), []byte("abcdefghijklmn\x02\x02")},
 		{[]byte("abcdefghijklmnopq"),
-		 []byte("abcdefghijklmnopq\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f")},
+			[]byte("abcdefghijklmnopq\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f")},
 		{[]byte("a"), []byte("a\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f\x0f")},
-		{[]byte(""), []byte("")},
+		{[]byte(""), bytes.Repeat([]byte{byte(0x10)}, 0x10)},
 	}
 
 	for _, exp := range data {
