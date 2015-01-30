@@ -2,6 +2,8 @@ package goscs
 
 import (
 	"bytes"
+	crand "crypto/rand"
+	"math/rand"
 	"testing"
 )
 
@@ -24,5 +26,51 @@ func TestAddPadding(t *testing.T) {
 		if !bytes.Equal(padded, exp.expected) {
 			t.Errorf("addPadding(%q) = %q, expected %q", exp.input, padded, exp.expected)
 		}
+	}
+}
+
+func BenchmarkAddPaddingAlphabet(b *testing.B) {
+	src := []byte("abcdefghijklmnopqrstuvwxyz")
+	length := len(src)
+
+	for n := 0; n < b.N; n++ {
+		for i := 0; i < length; i++ {
+			addPadding(src[:i])
+		}
+	}
+}
+
+func BenchmarkAddPaddingFuzz(b *testing.B) {
+	for n := 0; n < b.N; n++ {
+		fuzzSize := rand.Uint32() % (1 << 15)
+		fuzz := make([]byte, fuzzSize)
+		crand.Read(fuzz)
+		addPadding(fuzz)
+	}
+}
+
+func BenchmarkRemovePaddingAlphabet(b *testing.B) {
+	rawString := []byte("abcdefghijklmnopqrstuvwxyz")
+	length := len(rawString)
+	src := make([][]byte, len(rawString))
+	for i := 0; i < length; i++ {
+		src[i] = addPadding(rawString[:i])
+	}
+
+	b.ResetTimer()
+
+	for n := 0; n < b.N; n++ {
+		for i := 0; i < length; i++ {
+			removePadding(src[i])
+		}
+	}
+}
+
+func BenchmarkAddRemovePaddingFuzz(b *testing.B) {
+	for n := 0; n < b.N; n++ {
+		fuzzSize := rand.Uint32() % (1 << 15)
+		fuzz := make([]byte, fuzzSize)
+		crand.Read(fuzz)
+		removePadding(addPadding(fuzz))
 	}
 }
