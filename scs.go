@@ -15,22 +15,23 @@ import (
 
 var BadInputError = errors.New("Bad Input")
 
-type Scs struct {
+type ScsMgr struct {
 	key           []byte
 	aes           cipher.Block
 	sessionMaxAge time.Duration
+	timer         timer
 }
 
-func New(key []byte) *Scs {
+func NewMgr(key []byte) *ScsMgr {
 	a, err := aes.NewCipher(key)
 	if err != nil {
 		log.Fatalf("Failed to create cypher: %q\n", err)
 		return nil
 	}
-	return &Scs{key, a, time.Minute}
+	return &ScsMgr{key, a, time.Minute, defaultTimer{}}
 }
 
-func (s *Scs) Generate(data []byte) (string, error) {
+func (s *ScsMgr) Generate(data []byte) (string, error) {
 	iv := make([]byte, aes.BlockSize)
 	_, err := rand.Read(iv)
 	if err != nil {
@@ -39,7 +40,7 @@ func (s *Scs) Generate(data []byte) (string, error) {
 
 	tid := "1"
 
-	atimeInt := time.Now().Unix()
+	atimeInt := s.timer.Now().Unix()
 	atime := strconv.FormatInt(atimeInt, 16)
 
 	data = addPadding(data)
@@ -55,7 +56,7 @@ func (s *Scs) Generate(data []byte) (string, error) {
 	return box(eData, eAtime, eTid, eIv, eAuthtag), nil
 }
 
-func (s *Scs) Parse(input string) ([]byte, error) {
+func (s *ScsMgr) Parse(input string) ([]byte, error) {
 	splits := unbox(input)
 	if len(splits) != 5 {
 		return nil, BadInputError
@@ -95,7 +96,7 @@ func (s *Scs) Parse(input string) ([]byte, error) {
 		return nil, err
 	}
 	realAtime := time.Unix(realAtimeUnix, 0)
-	now := time.Now()
+	now := s.timer.Now()
 	duration := now.Sub(realAtime)
 	if duration > s.sessionMaxAge {
 		return nil, BadInputError
