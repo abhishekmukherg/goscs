@@ -2,6 +2,7 @@ package goscs
 
 import (
 	"bytes"
+	"fmt"
 	"strings"
 	"testing"
 	"time"
@@ -75,6 +76,20 @@ func TestGenerateMismatch(t *testing.T) {
 				t.Errorf("%q and %q shouldn't match", cookies[i], cookies[j])
 			}
 		}
+	}
+}
+
+func TestChangeKey(t *testing.T) {
+	data := []byte("abcdefjiklafehwfl")
+	scs := NewMgr([]byte("deadbedwasfed123"))
+	cookie, _ := scs.Generate(data)
+	scs = NewMgr([]byte("qrnqorqjnfsrq123"))
+	user, err := scs.Parse(cookie)
+	if user != nil {
+		t.Error("Somehow managed to decrypt with a different key")
+	}
+	if fmt.Sprint(err) != "Bad Input" {
+		t.Error("Got an unexpected error: ", err)
 	}
 }
 
